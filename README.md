@@ -33,7 +33,7 @@ production_systems:  how apps behave once real users show up
 - Trained PyTorch CNNs to classify reaction phases (**98% F1**) and scaled training **10×** on an HPC cluster
 - Built [GALAXI](https://galaxi-xrd.com), an AI platform that cuts materials analysis from **~2 hours to ~1 minute** for **140+ scientists**, and co-authored its [research paper](https://arxiv.org/abs/2609.06908)
 
-<img src="./assets/logos/meta.svg" alt="Meta" height="14" align="absmiddle">&nbsp; **[Meta × Major League Hacking](https://fellowship.mlh.io)** · *Production Engineering Fellow*
+<img src="./assets/logos/meta.svg?v=2" alt="Meta" height="20" align="absmiddle">&nbsp; **[Meta × Major League Hacking](https://fellowship.mlh.io)** · *Production Engineering Fellow*
 - Building a containerized uptime monitor, with Prometheus/Grafana dashboards and Discord webhook alerts
 
 <img src="./assets/logos/acm.png" alt="ACM" height="20" align="absmiddle">&nbsp; **[ACM @ UCLA](https://www.uclaacm.com)** · *Software Engineer*
