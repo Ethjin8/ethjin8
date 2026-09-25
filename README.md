@@ -6,7 +6,7 @@
 ### About Me
 I'm a San Diego native studying CS at UCLA, and I love bridging the gap between theoretical research and practical applications. Most of my time goes into ML models, the backends that serve them, and the infrastructure that keeps it all running.
 
-Off the keyboard, you can find me at a basketball/badminton court, deep in a [really good book](https://www.brandonsanderson.com/pages/the-stormlight-archive-series) (sci-fi or fantasy), or hunting for [my next show](https://en.wikipedia.org/wiki/Lanterns_(TV_series)).
+Off the keyboard, you can find me at a basketball/badminton court, deep in a [really good book](https://www.brandonsanderson.com/pages/the-stormlight-archive-series) (sci-fi or fantasy), or hunting for my next show.
 
 ### Current Interests
 
