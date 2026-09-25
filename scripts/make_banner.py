@@ -2,7 +2,8 @@
 
 Samples a dot grid inside the rendered name, gives every dot a random noisy
 starting offset, and animates it home with plain CSS (no JS, so GitHub plays it).
-A small counter ticks t = 1000 -> 0 like a diffusion sampler.
+A small counter ticks t = 1000 -> 0 like a diffusion sampler, then a shimmer
+keeps rippling through the finished name so it reads as live.
 
     python scripts/make_banner.py   # writes assets/banner-light.svg, assets/banner-dark.svg
 """
@@ -21,9 +22,13 @@ RADIUS = 2.0
 T_TOTAL = 3.2    # seconds until everything has landed
 SEED = 8
 
+WAVE_PERIOD = 4.5  # seconds between shimmer passes once the name has formed
+WAVE_SWEEP = 1.8   # seconds for one pass to cross the name
+
 PALETTES = {
-    "light": {"ink": "#1f2328", "noise": "#6b8cff", "muted": "#8b949e"},
-    "dark": {"ink": "#e6edf3", "noise": "#5b7cfa", "muted": "#7d8590"},
+    # grad: left -> right color stops across the name; glow: shimmer highlight
+    "light": {"grad": ["#4263eb", "#7048e8", "#d6336c"], "glow": "#15aabf", "noise": "#6b8cff", "muted": "#8b949e"},
+    "dark": {"grad": ["#748ffc", "#b197fc", "#f783ac"], "glow": "#ffffff", "noise": "#5b7cfa", "muted": "#7d8590"},
 }
 
 OUT = Path(__file__).resolve().parent.parent / "assets"
@@ -68,6 +73,15 @@ def build(targets, rng):
     return offsets, jitter, delays, durations
 
 
+def gradient(stops, u):
+    """Hex color at position u in [0, 1] along evenly spaced stops."""
+    rgb = np.array([[int(c[i:i + 2], 16) for i in (1, 3, 5)] for c in stops], float)
+    pos = u * (len(stops) - 1)
+    i = min(int(pos), len(stops) - 2)
+    c = rgb[i] + (rgb[i + 1] - rgb[i]) * (pos - i)
+    return "#" + "".join(f"{int(round(v)):02x}" for v in c)
+
+
 def counter_frames():
     """Diffusion-style timestep readout: ticks fast at first, slows near t = 0."""
     n = 24
@@ -81,10 +95,15 @@ def render(theme, targets, offsets, jitter, delays, durations):
     p = PALETTES[theme]
     frames, t_end = counter_frames()
 
+    xs, ys = targets[:, 0], targets[:, 1]
+    span = (xs - xs.min()) / (xs.max() - xs.min())
+    # shimmer travels as a slight diagonal, starting once every dot has landed
+    sweep = (xs - xs.min() + (H - ys) * 0.35) / (xs.max() - xs.min() + H * 0.35)
+    waves = T_TOTAL + 0.4 + sweep * WAVE_SWEEP
     dots = "\n".join(
         f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{RADIUS}" style="--x:{dx:.0f}px;--y:{dy:.0f}px;'
-        f'--jx:{jx:.0f}px;--jy:{jy:.0f}px;--d:{d:.2f}s;--t:{t:.2f}s"/>'
-        for (x, y), (dx, dy), (jx, jy), d, t in zip(targets, offsets, jitter, delays, durations)
+        f'--jx:{jx:.0f}px;--jy:{jy:.0f}px;--d:{d:.2f}s;--t:{t:.2f}s;--w:{w:.2f}s;--c:{gradient(p["grad"], u)}"/>'
+        for (x, y), (dx, dy), (jx, jy), d, t, w, u in zip(targets, offsets, jitter, delays, durations, waves, span)
     )
     ticks = "\n".join(
         f'<text class="k" style="--i:{start:.3f}s;--s:{dur:.3f}s">t = {v}</text>'
@@ -95,13 +114,19 @@ def render(theme, targets, offsets, jitter, delays, durations):
 <title>{NAME}</title>
 <style>
 circle {{
-  fill: {p["ink"]};
-  animation: denoise var(--t) cubic-bezier(.22,.61,.25,1) var(--d) both;
+  fill: var(--c);
+  animation:
+    denoise var(--t) cubic-bezier(.22,.61,.25,1) var(--d) both,
+    shimmer {WAVE_PERIOD}s ease-in-out var(--w) infinite;
+}}
+@keyframes shimmer {{
+  0%, 20%, 100% {{ fill: var(--c); transform: translate(0, 0); }}
+  7% {{ fill: {p["glow"]}; transform: translate(0, -3px); }}
 }}
 @keyframes denoise {{
   0% {{ transform: translate(var(--x), var(--y)); fill: {p["noise"]}; opacity: .28; }}
   55% {{ transform: translate(calc(var(--x) * .14 + var(--jx)), calc(var(--y) * .14 + var(--jy))); opacity: .75; }}
-  100% {{ transform: translate(0, 0); fill: {p["ink"]}; opacity: 1; }}
+  100% {{ transform: translate(0, 0); fill: var(--c); opacity: 1; }}
 }}
 text {{
   font: 500 15px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -111,8 +136,10 @@ text {{
 .k {{ opacity: 0; animation: tick var(--s) steps(1) var(--i); }}
 .done {{ opacity: 0; animation: tick .01s {t_end:.2f}s forwards; }}
 @keyframes tick {{ 0%, 100% {{ opacity: 1; }} }}
+.caret {{ animation: blink 1s steps(1) {t_end:.2f}s infinite; }}
+@keyframes blink {{ 50% {{ opacity: 0; }} }}
 @media (prefers-reduced-motion: reduce) {{
-  circle, .done {{ animation: none; opacity: 1; }}
+  circle, .done, .caret {{ animation: none; opacity: 1; }}
   .k {{ display: none; }}
 }}
 </style>
@@ -121,7 +148,7 @@ text {{
 </g>
 <g transform="translate({W - 24} {H - 22})">
 {ticks}
-<text class="done">t = 0</text>
+<text class="done">t = 0<tspan class="caret">_</tspan></text>
 </g>
 </svg>
 """
