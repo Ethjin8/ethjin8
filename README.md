@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/banner-dark.svg">
-  <img src="./assets/banner-light.svg" alt="Ethan Jin" width="100%">
+  <source media="(prefers-color-scheme: dark)" srcset="./assets/banner-dark.svg?v=2">
+  <img src="./assets/banner-light.svg?v=2" alt="Ethan Jin" width="100%">
 </picture>
 
 ### About Me
